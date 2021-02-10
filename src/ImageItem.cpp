@@ -9,7 +9,7 @@
 void ImageItem::setupInputArguments()
 {
     // first add input the uv
-    CVEXPtr->addInput("uv", CVEX_TYPE_VECTOR2, true);
+    CVEXPtr.addInput("uv", CVEX_TYPE_VECTOR2, true);
 
     // then add input the cd0,cd1,cd2....
     int startIndex = 0;
@@ -19,7 +19,7 @@ void ImageItem::setupInputArguments()
         std::string result;
         os >> result;
 
-        this->CVEXPtr->addInput(result.c_str(), CVEX_TYPE_VECTOR4, true);
+        this->CVEXPtr.addInput(result.c_str(), CVEX_TYPE_VECTOR4, true);
         startIndex += 1;
         });
 }
@@ -28,10 +28,11 @@ void ImageItem::compileVEXFile(const char* file)
 {
     const char* argv[4096];
     argv[0] = file;
-    if (!CVEXPtr->load(1, argv)) {
+    if (!CVEXPtr.load(1, argv)) {
         std::cout << "Error loading vex:" << argv[0] << std::endl;
-        std::cout << CVEXPtr->getVexWarnings() << std::endl;
-        std::cout << CVEXPtr->getVexErrors() << std::endl;
+        std::cout << CVEXPtr.getVexWarnings() << std::endl;
+        std::cout << CVEXPtr.getVexErrors() << std::endl;
+        isCompiled = false;
     }
     else isCompiled = true;
 
@@ -55,7 +56,7 @@ void ImageItem::setupArgumentsData()
     }
 
     // Check to see whether VEX function has a "vector2 uv" parameter
-    uvCoordData = CVEXPtr->findInput("uv", CVEX_TYPE_VECTOR2);
+    uvCoordData = CVEXPtr.findInput("uv", CVEX_TYPE_VECTOR2);
     if (uvCoordData) {
         uvCoordData->setTypedData(uvCoordsBuffer.data(), width * height);
     }
@@ -73,7 +74,7 @@ void ImageItem::setupArgumentsData()
         os << "cd" << startIndex;
         std::string result;
         os >> result;
-        CVEX_Value* valuePtr = this->CVEXPtr->findInput(result.c_str(), CVEX_TYPE_VECTOR4);
+        CVEX_Value* valuePtr = CVEXPtr.findInput(result.c_str(), CVEX_TYPE_VECTOR4);
         if (valuePtr) {
             valuePtr->setTypedData(item->outputImageBuffer.data(), width * height); // copy value for this item!
         }
@@ -89,7 +90,7 @@ void ImageItem::setupArgumentsData()
 
 
     // Check to see whether VEX function has a "export type out" parameter
-    outputImageData = CVEXPtr->findOutput("out", CVEX_TYPE_VECTOR4);
+    outputImageData = CVEXPtr.findOutput("out", CVEX_TYPE_VECTOR4);
     if (outputImageData) {
         outputImageBuffer.clear();
         outputImageBuffer.resize(width * height);
@@ -100,7 +101,7 @@ void ImageItem::setupArgumentsData()
 void ImageItem::runVex()
 {
     // Run the CVEX program
-    CVEXPtr->run(width * height, false);
+    CVEXPtr.run(width * height, false);
 }
 
 void ImageItem::bufferToPPM(const char *file)

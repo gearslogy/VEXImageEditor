@@ -45,7 +45,7 @@ struct ImageItem {
 
 
     bool isCompiled = false;
-    std::unique_ptr<CVEX_Context> CVEXPtr = std::make_unique<CVEX_Context>();
+    CVEX_Context CVEXPtr;
 
 
     std::vector<UT_Vector2> uvCoordsBuffer; // buffer setup initialized
