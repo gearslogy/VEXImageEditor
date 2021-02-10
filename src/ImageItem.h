@@ -30,106 +30,18 @@ struct ImageItem {
     }
 
     // STEP 0
-    void setupInputArguments() {
-
-
-        // first add input the uv
-        CVEXPtr->addInput("uv", CVEX_TYPE_VECTOR2, false);
-
-        // then add input the cd0,cd1,cd2....
-        int startIndex = 0;
-        std::for_each(bindImageItems.begin(), bindImageItems.end(), [&startIndex, this](ImageItem *item) {
-            std::stringstream os;
-            os << "cd" << startIndex;
-            std::string result;
-            os >> result;
-
-            this->CVEXPtr->addInput(result.c_str(), CVEX_TYPE_VECTOR4 , true);
-            startIndex += 1;
-        });
-
-    }
-
+    void setupInputArguments();
     // STEP 1
     // before compile the VEX compiler should make sure the right number of arguments
-    void compileVEXFile(const char *file) {
-        const char* argv[4096];
-        argv[0] = file;
-        if (!CVEXPtr->load(1, argv)) {
-            std::cout << "Error loading vex:" << argv[0] << std::endl;
-            std::cout << CVEXPtr->getVexWarnings() << std::endl;
-            std::cout << CVEXPtr->getVexErrors() << std::endl;
-        } else isCompiled = true;
-       
-
-    }
+    void compileVEXFile(const char* file);
 
     // STEP2
     // setup data
-    void setupArgumentsData() {
-        // gen buffer of the uvcoord
-        std::cout << "setup the uv coord buffer end\n";
-        uvCoordsBuffer.clear();
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                int index = col + row * width;
-                float u = (static_cast<float>(col) + 1.0f) / static_cast<float>(width);
-                float v = (static_cast<float>(row) + 1.0f) / static_cast<float>(height);
-                uvCoordsBuffer.emplace_back(UT_Vector2(u, v));
-            }
-        }
-
-        // uv buffer data out
-        // first let's setup the uvcoord
-        // Check to see whether VEX function has a "vector2 uv" parameter
-        uvCoordData = CVEXPtr->findInput("uv", CVEX_TYPE_VECTOR2);
-        if (uvCoordData) {
-            // Give the uv real data
-            uvCoordData->setTypedData(uvCoordsBuffer.data(), width * height);
-        } else {
-            std::cout << "can not find the uv arguments , setup the uv data error\n";
-        }
-
-
-        // then other input
-
-        // then add input the cd0,cd1,cd2....
-        int startIndex = 0;
-        std::for_each(bindImageItems.begin(), bindImageItems.end(), [&startIndex, this](ImageItem *item) {
-            std::stringstream os;
-            os << "cd" << startIndex;
-            std::string result;
-            os >> result;
-            CVEX_Value  *valuePtr = this->CVEXPtr->findInput(result.c_str(), CVEX_TYPE_VECTOR4);
-            if(valuePtr){
-                valuePtr->setTypedData(item->outputImageBuffer.data(), width * height); // copy value for this item!
-            }else{
-                std::cout << "can not set other input argument data for:" << result << std::endl;
-            }
-
-
-            startIndex += 1;
-        });
-
-
-
-
-        // Check to see whether VEX function has a "export type out" parameter
-        outputImageData = CVEXPtr->findOutput("out", CVEX_TYPE_VECTOR4);
-        if (outputImageData){
-            outputImageBuffer.clear();
-            outputImageBuffer.resize(width * height);
-            outputImageData->setTypedData(outputImageBuffer.data(), width * height);
-        }
-    }
+    void setupArgumentsData();
 
     // STEP3
     // Running VEX Code
-    void runVex() {
-        // Run the CVEX program
-        CVEXPtr->run(width*height, false);
-    }
-
+    void runVex();
 
 
     bool isCompiled = false;
@@ -154,6 +66,9 @@ struct ImageItem {
 
     // write out buffer to ppm , p3 
     void bufferToPPM(const char *file);
+
+    // name for this item
+    std::string name = "";
 };
 
 
